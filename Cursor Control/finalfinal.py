@@ -21,10 +21,14 @@ clicking = False
 scrolling_up = False
 scrolling_down = False
 tab_shifting = False  # Initialize a variable to track tab shifting gesture
-
+volume_up = False
+volume_down = False
 # Set thresholds for the finger positions
 scroll_up_threshold = 0.2  # Threshold for index finger to trigger scroll up
 scroll_down_threshold = 0.2  # Threshold for pinky finger to trigger scroll down
+
+volume_up_threshold = 0.2  # Threshold for index finger to trigger volume up
+volume_down_threshold = 0.2  # Threshold for pinky finger to trigger volume down
 
 while True:
     data, image = cap.read()
@@ -44,6 +48,7 @@ while True:
             thumb = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.THUMB_TIP]
             wrist = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.WRIST]
             palm = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.MIDDLE_FINGER_MCP]
+            ring_finger = hand_landmarks.landmark[mp.solutions.hands.HandLandmark.RING_FINGER_TIP]
 
             dist_threshold = math.pow((index_finger.y - middle_finger.y), 2) + math.pow((index_finger.x - middle_finger.x), 2)
             dist_pinky_finger = math.pow((pinky_finger.y - middle_finger.y), 2) + math.pow((pinky_finger.x - middle_finger.x), 2)
@@ -66,7 +71,18 @@ while True:
                 scrolling_down = True
             else:
                 scrolling_down = False
-
+                
+            #Detect volume-up gesture
+            if (middle_finger.y < pinky_finger.y - volume_up_threshold) and (index_finger.y < pinky_finger.y - volume_up_threshold) and (ring_finger.y < pinky_finger.y - volume_up_threshold) :
+                volume_up = True
+            else:
+                volume_up = False
+                
+            # #Detect volume-down gesture
+            if (middle_finger.y < index_finger.y - volume_down_threshold) and (ring_finger.y < index_finger.y - volume_down_threshold) and (pinky_finger.y < index_finger.y - volume_down_threshold):
+                volume_down = True
+            else:
+                volume_down = False
             # Detect tab shifting gesture using both palms
             if abs(palm.x - wrist.x) > 0.1 and abs(palm.y - wrist.y) > 0.1:
                 tab_shifting = True
@@ -84,7 +100,15 @@ while True:
             # Perform the scroll-down action
             if scrolling_down:
                 pyautogui.scroll(-500)  # Scroll down by 500 "clicks"
-
+                
+             # Perform the volume-up action
+            if volume_up:
+                pyautogui.press("volumeup")
+            
+            # Perform the volume-down action
+            if volume_down:
+                pyautogui.press("volumedown")  
+                
             # Perform tab shifting action
             if tab_shifting:
                 pyautogui.keyDown('ctrl')
