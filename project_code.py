@@ -11,7 +11,10 @@ import pyjokes
 def open_application(application):
     if os_type=="Windows":
         try:
-            os.startfile(application)
+            # os.startfile(application)
+            pyg.press('win')
+            pyg.write(application)
+            pyg.press('enter')
         except:
             speaker.say("Sorry, I cannot find "+application+" on your computer.")
             # speaker.runAndWait()
