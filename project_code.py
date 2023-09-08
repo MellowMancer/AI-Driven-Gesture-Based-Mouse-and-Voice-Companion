@@ -38,7 +38,9 @@ def close_application(application):
         subprocess.Popen(["killall", application])
 
 def respond(lst, n):
+    print(f"Here is the list:{lst}")
     l1=lst[0].split(' ')
+    print(f"Here is the split list:{l1}")
     #open application
     if 'open' in l1:
         id=l1.index('open')
@@ -47,11 +49,11 @@ def respond(lst, n):
         open_application(l1[id+1])
     
     #close application    
-    elif 'close' in l1:
-        id=l1.index('close')
-        speaker.say("Closing "+l1[id+1])
-        speaker.runAndWait()
-        close_application(l1[id+1])
+    # elif 'close' in l1:
+    #     id=l1.index('close')
+    #     speaker.say("Closing "+l1[id+1])
+    #     speaker.runAndWait()
+    #     close_application(l1[id+1])
         
     #open website
     elif 'open' in l1 and "." in l1:
@@ -61,7 +63,7 @@ def respond(lst, n):
         web.open_new_tab("https://"+l1[id+1], new=2, autoraise=True)
         
     #close website
-    elif 'close tab' in l1:
+    elif ('close' and 'tab') in l1:
         speaker.say("Closing tab")
         speaker.runAndWait()
         if os_type=="Windows" or os_type=="Linux":
@@ -70,11 +72,13 @@ def respond(lst, n):
             pyg.hotkey('command', 'w')
     
     #sarch on google
-    elif 'search for' in l1:
-        l2=l1.split('search_for')
-        web.get().open("https://www.google.com/search?q="+l2[-1])
-        speaker.say("Here is what I found for "+l2[-1])
-        speaker.runAndWait()
+    elif 'search' in l1:
+        if l1[l1.index('search') + 1] == 'for':
+            l2 = lst[0].replace('search for', "")
+            l2 = l2.replace(" ", "+")
+            web.get().open("https://www.google.com/search?q="+l2)
+            speaker.say("Here is what I found for "+l2)
+            speaker.runAndWait()
         
     #play song on youtube
     
