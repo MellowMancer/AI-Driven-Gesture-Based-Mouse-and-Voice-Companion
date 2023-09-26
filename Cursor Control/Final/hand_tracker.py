@@ -2,17 +2,15 @@
 
 import cv2
 import mediapipe as mp
-from screeninfo import get_monitors
+# from screeninfo import get_monitors
 
 class HandTracker:
     def __init__(self):
         self.mp_drawing = mp.solutions.drawing_utils
         self.mphands = mp.solutions.hands
-        self.hands = self.mphands.Hands()
+        self.hands = self.mphands.Hands(static_image_mode = False, max_num_hands = 1, min_detection_confidence = 0.6)
 
         self.cap = cv2.VideoCapture(0)
-        self.monitor = get_monitors()[0]
-        self.screen_width, self.screen_height = self.monitor.width, self.monitor.height
 
     def read_frame(self):
         return self.cap.read()

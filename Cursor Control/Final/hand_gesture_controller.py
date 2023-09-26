@@ -23,13 +23,13 @@ class HandGestureController:
         pinky_finger = hand_landmarks.landmark[mphands.PINKY_TIP]
         thumb = hand_landmarks.landmark[mphands.THUMB_TIP]
         wrist = hand_landmarks.landmark[mphands.WRIST]
-        palm = hand_landmarks.landmark[mphands.MIDDLE_FINGER_MCP]
         ring_finger = hand_landmarks.landmark[mphands.RING_FINGER_TIP]
+        knuckle = hand_landmarks.landmark[mphands.MIDDLE_FINGER_MCP]
 
         dist_threshold = math.pow((index_finger.y - middle_finger.y), 2) + math.pow((index_finger.x - middle_finger.x), 2)
         hand_length = math.pow((wrist.y - middle_finger.y), 2) + math.pow((wrist.x - middle_finger.x), 2)
 
-        scroll_up_threshold = 0.2  # Threshold for index finger to trigger scroll up
+        scroll_threshold = 0.075  # Threshold for index finger to trigger scroll up
         scroll_down_threshold = 0.2  # Threshold for pinky finger to trigger scroll down
 
         volume_up_threshold = 0.2  # Threshold for index finger to trigger volume up
@@ -39,70 +39,71 @@ class HandGestureController:
         screen_width, screen_height = monitor.width, monitor.height
         
         # Check if all four fingers are detected
-        if thumb.y < index_finger.y and thumb.y < middle_finger.y:
-            clicking = True
-        else:
-            clicking = False
+        # if (index_finger.y < knuckle.y) and (middle_finger.y > knuckle.y) and (pinky_finger.y > knuckle.y) and (ring_finger.y > knuckle.y) and thumb.x < index_finger.x:
+        #     left_clicking = True
+        #     follow_cursor = True
+        # else:
+        #     left_clicking = False
 
         # Detect scroll-up gesture
-        if index_finger.y < middle_finger.y - scroll_up_threshold:
-            scrolling_up = True
+        if abs(index_finger.y - knuckle.y) < scroll_threshold and abs(middle_finger.y - knuckle.y) < scroll_threshold and abs(pinky_finger.y - knuckle.y) < scroll_threshold and abs(ring_finger.y - knuckle.y) < scroll_threshold:
+            scrolling = True
         else:
-            scrolling_up = False
-
-        # Detect scroll-down gesture
-        if pinky_finger.y < middle_finger.y - scroll_down_threshold:
-            scrolling_down = True
-        else:
-            scrolling_down = False
+            scrolling = False
             
         #Detect volume-up gesture
-        if (middle_finger.y < pinky_finger.y - volume_up_threshold) and (index_finger.y < pinky_finger.y - volume_up_threshold) and (ring_finger.y < pinky_finger.y - volume_up_threshold) :
+        if (middle_finger.y < knuckle.y) and (index_finger.y < knuckle.y) and (ring_finger.y < knuckle.y) and (pinky_finger.y > knuckle.y):
             volume_up = True
         else:
             volume_up = False
             
         # #Detect volume-down gesture
-        if (middle_finger.y < index_finger.y - volume_down_threshold) and (ring_finger.y < index_finger.y - volume_down_threshold) and (pinky_finger.y < index_finger.y - volume_down_threshold):
+        if (middle_finger.y < knuckle.y) and (ring_finger.y < knuckle.y) and (pinky_finger.y < knuckle.y) and (index_finger.y > knuckle.y):
             volume_down = True
         else:
             volume_down = False
-        # Detect tab shifting gesture using both palms
-        if abs(palm.x - wrist.x) > 0.1 and abs(palm.y - wrist.y) < 0.1:
-            tab_shifting = True
-        else:
-            tab_shifting = False
+        # # Detect tab shifting gesture using both palms
+        # if abs(knuckle.x - wrist.x) > 0.1 and abs(knuckle.y - wrist.y) < 0.1:
+        #     tab_shifting = True
+        # else:
+        #     tab_shifting = False
+
+        # if dist_threshold < hand_length * 0.02 and (index_finger.y < knuckle.y) and (middle_finger.y < knuckle.y) and (ring_finger.y > knuckle.y) and (pinky_finger.y > knuckle.y):
+        #     follow_cursor = True
+        # else:
+        #     follow_cursor = False
 
         # Perform the click action
-        if clicking:
-            pyautogui.click()
+        # if left_clicking:
+        #     pyautogui.click()
 
         # Perform the scroll-up action
-        if scrolling_up:
-            pyautogui.scroll(500)  # Scroll up by 500 "clicks"
-
+        if scrolling:
+            scroll = 4000*(index_finger.y - knuckle.y)
+            pyautogui.scroll(int(scroll))  # Scroll up by 500 "clicks"
+            print(int(scroll))
         # Perform the scroll-down action
-        if scrolling_down:
-            pyautogui.scroll(-500)  # Scroll down by 500 "clicks"
+        # elif scrolling_down:
+        #     pyautogui.scroll(-500)  # Scroll down by 500 "clicks"
             
             # Perform the volume-up action
-        if volume_up:
-            pyautogui.press("volumeup")
+        # elif volume_up:
+        #     pyautogui.press("volumeup")
         
-        # Perform the volume-down action
-        if volume_down:
-            pyautogui.press("volumedown")  
+        # # Perform the volume-down action
+        # elif volume_down:
+        #     pyautogui.press("volumedown")  
             
-        # Perform tab shifting action
-        if tab_shifting:
-            pyautogui.keyDown('ctrl')
-            pyautogui.press('tab')
-            pyautogui.keyUp('ctrl')
+        # # Perform tab shifting action
+        # elif tab_shifting:
+        #     pyautogui.keyDown('ctrl')
+        #     pyautogui.press('tab')
+        #     pyautogui.keyUp('ctrl')
 
-        # Follow Cursor:
-        elif dist_threshold < hand_length * 0.02:
-            x, y = int(index_finger.x *screen_width), int(index_finger.y *screen_height)
-            pyautogui.moveTo(x, y)
+        # # Follow Cursor:
+        # if follow_cursor:
+        #     x, y = int(index_finger.x *screen_width*1.2 - 100), int(index_finger.y *screen_height*1.2 - 100)
+        #     pyautogui.moveTo(x, y)
     
     def perform_actions(self):
         if self.clicking:
