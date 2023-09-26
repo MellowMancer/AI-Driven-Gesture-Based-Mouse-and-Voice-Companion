@@ -124,7 +124,8 @@ def respond(text):
     #sarch on google
     elif 'search' in l1:
         if l1[l1.index('search') + 1] == 'for':
-            l2 = lst[0].replace('search for', "")
+            print(l1)
+            l2 = l1[0].replace('search for', "")
             l2 = l2.replace(" ", "+")
             web.get().open("https://www.google.com/search?q="+l2)
             speaker.say("Here is what I found for "+l2)
