@@ -6,10 +6,10 @@ from hand_gesture_controller import HandGestureController
 from voice import Voice
 
 def main():
-    voice=Voice()
-    r= voice.source()
     hand_tracker = HandTracker()
     hand_gesture_controller = HandGestureController()
+    voice=Voice()
+    r= voice.source()
 
     while True:
         data, image = hand_tracker.read_frame()
