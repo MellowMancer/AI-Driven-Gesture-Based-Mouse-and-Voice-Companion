@@ -3,14 +3,19 @@
 import cv2
 from hand_tracker import HandTracker
 from hand_gesture_controller import HandGestureController
+from voice import Voice
 
 def main():
+    voice=Voice()
+    r= voice.source()
     hand_tracker = HandTracker()
     hand_gesture_controller = HandGestureController()
 
     while True:
         data, image = hand_tracker.read_frame()
         results, image = hand_tracker.process_frame(image)
+        voice.listen(r)
+        print("Start Speaking")
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
