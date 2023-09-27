@@ -4,6 +4,7 @@ import math
 import pyautogui
 import hand_tracker as HandTracker
 from screeninfo import get_monitors
+import screen_brightness_control as sbc
 
 class HandGestureController:
     def __init__(self):
@@ -115,6 +116,18 @@ class HandGestureController:
         # # Perform the volume-down action
         elif self.volume_down:
             pyautogui.press("volumedown")  
+        
+        # Perform the brightness-up action
+        elif self.brightness_up:
+            #increase brightness by 10%
+            sbc.set_brightness('+10')
+            
+        # Perform the brightness-down action    
+        elif self.brightness_down:
+            #decrease brightness by 10%
+            sbc.set_brightness('-10')      
+         
+             
             
         # Perform tab shifting action
         elif self.tab_shifting:
