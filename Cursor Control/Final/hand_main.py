@@ -21,9 +21,9 @@ def call_for_gesture():
         hand_gesture_controller.perform_actions()
 
         cv2.imshow('Waver', image)
-        cv2.waitKey(1)
+        cv2.waitKey(100)
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if cv2.waitKey(100) & 0xFF == ord('q'):
             break
 
     hand_tracker.release()
