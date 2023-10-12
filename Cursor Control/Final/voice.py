@@ -1,4 +1,5 @@
 import speech_recognition as sr
+from threading import *
 import pyttsx3
 import pyautogui as pyg
 import pygetwindow as gw
@@ -32,6 +33,8 @@ class Voice:
             self.speaker.say("How can I help you?")
             self.speaker.runAndWait()
         return r
+        # while True:
+        # self.listen(r)
     
     def open_application(self, application):
         if self.os_type=="Windows":

@@ -5,6 +5,7 @@ import pyautogui
 import hand_tracker as HandTracker
 from screeninfo import get_monitors
 import screen_brightness_control as sbc
+import time
 
 class HandGestureController:
     def __init__(self):
@@ -35,13 +36,18 @@ class HandGestureController:
         hand_length = math.pow((wrist.y - middle_finger.y), 2) + math.pow((wrist.x - middle_finger.x), 2)
 
         scroll_threshold = 0.1  # Threshold for index finger to trigger scroll up
-        
+        count = 0
+
         # Check if four fingers are raised
         if (self.index_finger.y < self.knuckle.y) and (middle_finger.y > self.knuckle.y) and (pinky_finger.y > self.knuckle.y) and (ring_finger.y > self.knuckle.y) and thumb.x < self.index_finger.x:
             if self.left_clicking:
+                count += 1
+            elif count > 10:
                 self.hold = True
+                self.left_clicking = False
             else:
                 self.left_clicking = True
+                count = 0
                 self.hold = False
         else:
             self.left_clicking = False
@@ -73,7 +79,8 @@ class HandGestureController:
             self.volume_down = False
 
         # Detect tab shifting gesture using both palms
-        if abs(self.knuckle.x - wrist.x) > 0.1 and abs(self.knuckle.y - wrist.y) < 0.1:
+        if abs(self.knuckle.x - wrist.x) > 0.1 and abs(self.knuckle.y - wrist.y) < 0.5:
+            # print("switch")
             self.tab_shifting = True
         else:
             self.tab_shifting = False
@@ -117,23 +124,25 @@ class HandGestureController:
         elif self.volume_down:
             pyautogui.press("volumedown")  
         
-        # Perform the brightness-up action
-        elif self.brightness_up:
-            #increase brightness by 10%
-            sbc.set_brightness('+10')
+        # # Perform the brightness-up action
+        # elif self.brightness_up:
+        #     #increase brightness by 10%
+        #     sbc.set_brightness('+10')
             
-        # Perform the brightness-down action    
-        elif self.brightness_down:
-            #decrease brightness by 10%
-            sbc.set_brightness('-10')      
+        # # Perform the brightness-down action    
+        # elif self.brightness_down:
+        #     #decrease brightness by 10%
+        #     sbc.set_brightness('-10')      
          
              
             
         # Perform tab shifting action
         elif self.tab_shifting:
-            pyautogui.keyDown('ctrl')
+            pyautogui.keyDown('alt')
+            time.sleep(.2)
             pyautogui.press('tab')
-            pyautogui.keyUp('ctrl')
+            time.sleep(.2)
+            pyautogui.keyUp('alt')
 
         # Follow Cursor:
         if self.follow_cursor:

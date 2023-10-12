@@ -2,7 +2,8 @@
 
 import cv2
 import mediapipe as mp
-# from screeninfo import get_monitors
+# from main import data, image, results
+# from screeninfo import get_monitorsqq
 
 class HandTracker:
     def __init__(self):
@@ -19,7 +20,7 @@ class HandTracker:
         image = cv2.cvtColor(cv2.flip(image, 1), cv2.COLOR_BGR2RGB)
         results = self.hands.process(image)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        return results, image
+        return results, image   
 
     def draw_landmarks(self, image, hand_landmarks):
         self.mp_drawing.draw_landmarks(image, hand_landmarks, self.mphands.HAND_CONNECTIONS)

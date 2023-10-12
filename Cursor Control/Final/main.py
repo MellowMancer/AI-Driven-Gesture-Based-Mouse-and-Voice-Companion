@@ -1,38 +1,19 @@
-# main.py
+from voice_main import call_for_voice
+from threading import *
+from hand_main import call_for_gesture
+from multiprocess import Process
 
-import cv2
-from hand_tracker import HandTracker
-from hand_gesture_controller import HandGestureController
-from voice import Voice
+t1=Thread(target=call_for_voice)
+# t1=Process(target=call_for_voice)
+t2=Thread(target=call_for_gesture)
 
-def main():
-    # voice=Voice()
-    # r= voice.source()
-    hand_tracker = HandTracker()
-    hand_gesture_controller = HandGestureController()
-    voice=Voice()
-    r= voice.source()
+# t2=Process(target=call_for_gesture)
+t1.start()
+print('T1 started')
+t2.start()
+print('T2 started')
 
-    while True:
-        data, image = hand_tracker.read_frame()
-        results, image = hand_tracker.process_frame(image)
-        # voice.listen(r)
-        # print("Start Speaking")
-
-        if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
-                hand_tracker.draw_landmarks(image, hand_landmarks)
-                hand_gesture_controller.detect_gestures(hand_tracker.mphands.HandLandmark, hand_landmarks)
-
-        hand_gesture_controller.perform_actions()
-
-        cv2.imshow('Waver', image)
-        cv2.waitKey(1)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
-    hand_tracker.release()
-
-if __name__ == "__main__":
-    main()
+t1.join()
+print('T1 ended')
+t2.join()
+print('T2 ended')
