@@ -4,14 +4,13 @@ import cv2
 from hand_tracker import HandTracker
 from hand_gesture_controller import HandGestureController
 
-def call_for_gesture():
+def call_for_gesture(terminate_queue):
     hand_tracker = HandTracker()
     hand_gesture_controller = HandGestureController()
 
     while True:
         data, image = hand_tracker.read_frame()
         results, image = hand_tracker.process_frame(image)
-        # print("Start Speaking")
 
         if results.multi_hand_landmarks:
             for hand_landmarks in results.multi_hand_landmarks:
@@ -23,10 +22,11 @@ def call_for_gesture():
         cv2.imshow('Waver', image)
         cv2.waitKey(100)
 
-        if cv2.waitKey(100) & 0xFF == ord('q'):
-            break
+        if cv2.waitKey(100) & 0xFF == ord('q') or not terminate_queue.empty():
+            message = terminate_queue.get()
+            if message == "terminate":
+                break
 
     hand_tracker.release()
 
-# if __name__ == "__main__":
-#     call_for_gesture()
+# if __name__ == "__mq

@@ -1,31 +1,85 @@
 import sys
-from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, QVBoxLayout, QWidget, QProgressBar
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QPixmap
 from voice_main import call_for_voice
 from hand_main import call_for_gesture
 import multiprocessing
 import os
 
+class WorkerThread(QThread):
+    finished = pyqtSignal()
+
+    def run(self):
+        # Simulate a long-running task
+        self.sleep(5)
+        self.finished.emit()
+
 class MainWindow(QMainWindow):
 
+    def handFontColor(self) -> None:
+        self.hand_status *= -1
+        if self.hand_status == 1:
+            self.button1.setStyleSheet(f'QPushButton {{ background-color: #262529; color: grey; font: bold 30px; }}')
+            self.button3.setStyleSheet(f'QPushButton {{ background-color: #262529; color: white; font: bold 25px; }}' 
+                                       f'QPushButton:hover {{ background-color: #262529; color: #f02e61; font: bold 28px;}}')
+        else:
+            self.button1.setStyleSheet(f'QPushButton {{ background-color: #262529; color: white; font: bold 30px; }}'
+                                    f'QPushButton:hover {{ background-color: #262529; color: #f02e61; font: bold 35px;}}')
+            self.button3.setStyleSheet(f'QPushButton {{ background-color: #262529; color: grey; font: bold 25px; }}')
+
+    def voiceFontColor(self) -> None:
+        self.voice_status *= -1
+        if self.voice_status == 1:
+            self.button2.setStyleSheet(f'QPushButton {{ background-color: #262529; color: grey; font: bold 30px; }}')
+            self.button4.setStyleSheet(f'QPushButton {{ background-color: #262529; color: white; font: bold 25px; }}' 
+                                       f'QPushButton:hover {{ background-color: #262529; color: #f02e61; font: bold 28px;}}')
+        else:
+            self.button2.setStyleSheet(f'QPushButton {{ background-color: #262529; color: white; font: bold 30px; }}'
+                                    f'QPushButton:hover {{ background-color: #262529; color: #f02e61; font: bold 35px;}}')
+            self.button4.setStyleSheet(f'QPushButton {{ background-color: #262529; color: grey; font: bold 25px; }}')
+
+    def update_loading1(self):
+        self.load1 *= -1
+        if self.load1 == 1:
+            self.loading1.setStyleSheet(f'QLabel {{ background-color: rgba(0,0,0,0); color: grey; font: bold 20px; }}')
+        else:
+            self.loading1.setStyleSheet(f'QLabel {{ background-color: rgba(0,0,0,0); color: #262529; font: bold 20px; }}')    
+
+    def update_loading2(self):
+        self.load2 *= -1
+        if self.load2 == 1:
+            self.loading2.setStyleSheet(f'QLabel {{ background-color: rgba(0,0,0,0); color: grey; font: bold 20px; }}')
+        else:
+            self.loading2.setStyleSheet(f'QLabel {{ background-color: rgba(0,0,0,0); color: #262529; font: bold 20px; }}')
+
     def start_hand_detection(self):
-        self.hand_process = multiprocessing.Process(target=call_for_gesture)
-        self.hand_process.start()
+        if not hasattr(self, 'hand_process'):
+            self.hand_process = multiprocessing.Process(target=call_for_gesture, args=(self.hand_terminate_queue,))
+            # self.update_loading1()
+            self.handFontColor()
+            self.hand_process.start()
 
     def stop_hand_detection(self):
         if hasattr(self, 'hand_process'):
-            self.hand_process.terminate()
-            self.hand_process.join()
+            self.handFontColor()
+            self.hand_terminate_queue.put("terminate")
+            # self.hand_process.terminate()
+            # self.hand_process.join()
 
     def start_speech_detection(self):
-        self.voice_process = multiprocessing.Process(target=call_for_voice)
-        self.voice_process.start()
+        if not hasattr(self, 'voice_process'):
+            self.voice_process = multiprocessing.Process(target=call_for_voice, args=(self.voice_terminate_queue,))
+            # self.update_loading2()
+            self.voiceFontColor()
+            self.voice_process.start()
 
     def stop_speech_detection(self):
         if hasattr(self, 'voice_process'):
-            self.voice_process.terminate()
-            self.voice_process.join()
+            self.voiceFontColor()
+            self.voice_terminate_queue.put("terminate")
+            # self.voice_process.terminate()
+            # self.voice_process.join()
 
     def open_manual(self):
         manual_window = QMainWindow()
@@ -33,7 +87,7 @@ class MainWindow(QMainWindow):
         manual_window.setGeometry(300, 300, 800, 600)
 
         label = QLabel(manual_window)
-        file_path = os.path.abspath("manual.pdf")
+        file_path = os.path.abspath("manual.png")
         pixmap = QPixmap(file_path)
         label.setPixmap(pixmap)
 
@@ -44,6 +98,13 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle("Waver")
         self.setGeometry(200, 200, 800, 460)
+
+        self.hand_terminate_queue = multiprocessing.Queue()
+        self.voice_terminate_queue = multiprocessing.Queue()
+        self.load1 = -1
+        self.load2 = -1
+        self.hand_status = -1
+        self.voice_status = -1
 
         self.button0 = QPushButton("Manual", self)
         self.button0.setGeometry(0, 0, 800, 60)
@@ -57,87 +118,32 @@ class MainWindow(QMainWindow):
                                    "QPushButton:hover { background-color: #262529; color: #f02e61; font: bold 35px;}")
         self.button1.clicked.connect(self.start_hand_detection)
 
+        self.loading1 = QLabel("Loading...", self)
+        self.loading1.setGeometry(100, 260, 100, 140)
+        self.loading1.setStyleSheet("QLabel { background-color: rgba(0,0,0,0); color: #262529; font: bold 20px; }")
+
         self.button2 = QPushButton("Start Voice Detection", self)
         self.button2.setGeometry(400, 60, 400, 340)
         self.button2.setStyleSheet("QPushButton { background-color: #262529; color: white; font: bold 30px; }"
                                     "QPushButton:hover { background-color: #262529; color: #f02e61; font: bold 35px;}")
         self.button2.clicked.connect(self.start_speech_detection)
 
+        self.loading2 = QLabel("Loading...", self)
+        self.loading2.setGeometry(500, 260, 100, 140)
+        self.loading2.setStyleSheet("QLabel { background-color: rgba(0,0,0,0); color: #262529; font: bold 20px; }")
+
         self.button3 = QPushButton("Stop Hand Detection", self)
         self.button3.setGeometry(0, 400, 400, 60)
-        self.button3.setStyleSheet("QPushButton { background-color: #262529; color: white; font: bold 25px; }"
-                                    "QPushButton:hover { background-color: #262529; color: #f02e61; font: bold 28px;}")
+        self.button3.setStyleSheet("QPushButton { background-color: #262529; color: grey; font: bold 25px; }")
         self.button3.clicked.connect(self.stop_hand_detection)
 
         self.button4 = QPushButton("Stop Voice Detection", self)
         self.button4.setGeometry(400, 400, 400, 60)
-        self.button4.setStyleSheet("QPushButton { background-color: #262529; color: white; font: bold 25px; }"
-                                    "QPushButton:hover { background-color: #262529; color: #f02e61; font: bold 28px;}")
+        self.button4.setStyleSheet("QPushButton { background-color: #262529; color: grey; font: bold 25px; }")
         self.button4.clicked.connect(self.stop_speech_detection)
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
+    app = QApplication([])
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
-
-
-
-
-
-
-# import sys
-# from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton
-# from PyQt6.QtGui import QFont, QColor, QPainter, QRegion
-# from PyQt6.QtCore import Qt, QRectF
-# from voice_main import call_for_voice
-# from hand_main import call_for_gesture
-# import multiprocessing
-
-# class MainWindow(QMainWindow):
-
-#     def start_hand_detection(self):
-#         self.pool.apply_async(call_for_gesture)  # Run function1 asynchronously
-
-#     def start_speech_detection(self):
-#         self.pool.apply_async(call_for_voice)  # Run function2 asynchronously
-
-#     def __init__(self):
-#         super().__init__()
-
-#         self.pool = multiprocessing.Pool(processes=2)
-
-#         self.setWindowTitle("Waver")
-#         self.setGeometry(200, 200, 800, 400)
-
-#         self.button0 = QPushButton("Manual", self)
-#         self.button0.setGeometry(0, 0, 800, 60)
-#         self.button0.setStyleSheet("QPushButton { background-color: #262529; color: white; font: bold 25px; }"
-#                                     "QPushButton:hover { background-color: #262529; color: #f02e61; font: bold 28px;}")
-#         self.button0.clicked.connect(self.start_hand_detection)
-
-#         self.button1 = QPushButton("Start Hand\n Detection", self)
-#         self.button1.setGeometry(0, 60, 400, 340)
-#         self.button1.setStyleSheet("QPushButton { background-color: #262529; color: white; font: bold 30px; }"
-#                                     "QPushButton:hover { background-color: #262529; color: #f02e61; font: bold 35px;}")
-#         self.button1.clicked.connect(self.start_hand_detection)
-#         # self.button1.setCursor("PointingHandCursor")
-
-#         self.button2 = QPushButton("Start Voice\n Detection", self)
-#         self.button2.setGeometry(400, 60, 400, 340)
-#         self.button2.setStyleSheet("QPushButton { background-color: #262529; color: white; font: bold 30px;}"
-#                                     "QPushButton:hover { background-color: #262529; color: #f02e61; font: bold 35px;}")
-#         self.button2.clicked.connect(self.start_speech_detection)
-#         # self.button2.setCursor("PointingHandCursor")
-        
-#         # self.setWindowFlags(Qt.WindowType.FramelessWindowHint)
-#         # self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        
-#         # self.setMask(QRegion(self.rect(), QRegion.RegionType.RoundedRect))
-
-#         self.show()
-
-# if __name__ == '__main__':
-#     app = QApplication(sys.argv)
-#     window = MainWindow()
-#     sys.exit(app.exec())

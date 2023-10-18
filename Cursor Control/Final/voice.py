@@ -101,7 +101,7 @@ class Voice:
                     else:
                         i+=1
                 print(lst)
-                self.respond(lst[0])   
+                self.respond(lst[0])
                 
     def set_timer(self, seconds):
         start_time = time.time()
