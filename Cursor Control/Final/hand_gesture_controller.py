@@ -17,9 +17,14 @@ class HandGestureController:
         self.volume_down = False
         self.follow_cursor = False
         self.hold = False
+        self.minimize = False
 
         self.index_finger = None
         self.knuckle = None
+        
+
+    def dist(self, p1, p2):
+        return (math.pow((p1.x - p2.x), 2) + math.pow((p1.y - p2.y), 2))
 
     def detect_gestures(self, mphands, hand_landmarks):
         scaling_factor = 1.5  # Scaling factor depends on the distance of hand from the camera
@@ -32,7 +37,7 @@ class HandGestureController:
         ring_finger = hand_landmarks.landmark[mphands.RING_FINGER_TIP]
         self.knuckle = hand_landmarks.landmark[mphands.MIDDLE_FINGER_MCP]
 
-        dist_threshold = math.pow((self.index_finger.y - middle_finger.y), 2) + math.pow((self.index_finger.x - middle_finger.x), 2)
+        dist_threshold = self.dist(self.index_finger, middle_finger)
         hand_length = math.pow((wrist.y - middle_finger.y), 2) + math.pow((wrist.x - middle_finger.x), 2)
 
         scroll_threshold = 0.1  # Threshold for index finger to trigger scroll up
@@ -61,7 +66,7 @@ class HandGestureController:
         #     self.right_clicking = False
 
         # Detect scroll gesture
-        if abs(self.index_finger.y - self.knuckle.y) < scroll_threshold and abs(middle_finger.y - self.knuckle.y) < scroll_threshold and abs(pinky_finger.y - self.knuckle.y) < scroll_threshold and abs(ring_finger.y - self.knuckle.y) < scroll_threshold and (self.index_finger.y - self.knuckle.y)*(middle_finger.y - self.knuckle.y)*(pinky_finger.y - self.knuckle.y)*(ring_finger.y - self.knuckle.y) > 0 and (pinky_finger.x -self.index_finger.x) < 10:
+        if abs(self.index_finger.y - self.knuckle.y) < scroll_threshold and abs(middle_finger.y - self.knuckle.y) < scroll_threshold and abs(pinky_finger.y - self.knuckle.y) < scroll_threshold and abs(ring_finger.y - self.knuckle.y) < scroll_threshold and (self.index_finger.y - self.knuckle.y)*(middle_finger.y - self.knuckle.y)*(pinky_finger.y - self.knuckle.y)*(ring_finger.y - self.knuckle.y) > 0 and (pinky_finger.x -self.index_finger.x) < 10 and self.minimize == False:
             self.scrolling = True
         else:
             self.scrolling = False
@@ -78,9 +83,15 @@ class HandGestureController:
         else:
             self.volume_down = False
 
+        # Detect minimize gesture
+        if (self.dist(self.index_finger, thumb)) < 0.08 * hand_length and (self.dist(middle_finger, thumb)) < 0.08 * hand_length and (self.dist(pinky_finger, thumb)) < 0.08 * hand_length and (self.dist(ring_finger, thumb)) < 0.08 * hand_length:
+            self.minimize = True
+        else:
+            self.minimize = False
+        
         # Detect tab shifting gesture using both palms
-        if abs(self.knuckle.x - wrist.x) > 0.1 and abs(self.knuckle.y - wrist.y) < 0.5:
-            # print("switch")
+        if abs(self.knuckle.x - wrist.x) > hand_length * 0.02 and abs(self.knuckle.y - wrist.y) < hand_length * 0.5:
+            print("switch")
             self.tab_shifting = True
         else:
             self.tab_shifting = False
@@ -123,6 +134,11 @@ class HandGestureController:
         # # Perform the volume-down action
         elif self.volume_down:
             pyautogui.press("volumedown")  
+
+        elif self.minimize:
+            pyautogui.keyDown('win')
+            pyautogui.press('m')
+            pyautogui.keyUp('win')
         
         # # Perform the brightness-up action
         # elif self.brightness_up:
@@ -137,14 +153,12 @@ class HandGestureController:
              
             
         # Perform tab shifting action
-        elif self.tab_shifting:
-            pyautogui.keyDown('alt')
-            time.sleep(.2)
-            pyautogui.press('tab')
-            time.sleep(.2)
-            pyautogui.keyUp('alt')
+        # elif self.tab_shifting:
+        #     pyautogui.keyDown('alt')
+        #     pyautogui.press('tab')
+        #     pyautogui.keyUp('alt')
 
         # Follow Cursor:
         if self.follow_cursor:
-            x, y = int(self.index_finger.x *screen_width*1.3 - 100), int(self.index_finger.y *screen_height*1.4 - 150)
-            pyautogui.moveTo(x, y, 0.05)
+            x, y = int(self.index_finger.x *screen_width*1.3 - 100), int(self.index_finger.y *screen_height*2 - 300)
+            pyautogui.moveTo(x, y, duration=0.08)
