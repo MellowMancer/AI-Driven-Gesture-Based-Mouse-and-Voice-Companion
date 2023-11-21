@@ -15,6 +15,24 @@ class WorkerThread(QThread):
         self.sleep(5)
         self.finished.emit()
 
+class ManualWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Manual")
+        self.setGeometry(200, 200, 800, 460)
+        self.label = QLabel(self)
+        self.label.setPixmap(QPixmap(os.path.join(os.path.dirname(__file__), 'manual.png')))
+        self.label.setGeometry(0, 0, 800, 460)
+
+    def open_image(self, path):
+        self.label.setPixmap(QPixmap(path))
+        label = QLabel()
+        pixmap = QPixmap(path)
+        label.setPixmap(pixmap)
+        label.setScaledContents(True)
+        self.setWindowTitle("Manual")
+        self.show()
+
 class MainWindow(QMainWindow):
 
     def handFontColor(self) -> None:
@@ -82,15 +100,12 @@ class MainWindow(QMainWindow):
             # self.voice_process.join()
 
     def open_manual(self):
-        manual_window = QMainWindow()
-        manual_window.setWindowTitle("Manual")
-        manual_window.setGeometry(300, 300, 800, 600)
-
+        manual_window = QWidget()
         label = QLabel(manual_window)
-        file_path = os.path.abspath("manual.png")
-        pixmap = QPixmap(file_path)
+        pixmap = QPixmap("Cursor Control\Final\manual.png")
         label.setPixmap(pixmap)
-
+        label.setScaledContents(True)
+        manual_window.setWindowTitle("Manual Window")
         manual_window.show()
 
     def __init__(self):

@@ -18,6 +18,7 @@ class HandGestureController:
         self.follow_cursor = False
         self.hold = False
         self.minimize = False
+        self.on_screen_keyboard = False
 
         self.index_finger = None
         self.knuckle = None
@@ -45,25 +46,17 @@ class HandGestureController:
 
         # Check if four fingers are raised
         if (self.index_finger.y < self.knuckle.y) and (middle_finger.y > self.knuckle.y) and (pinky_finger.y > self.knuckle.y) and (ring_finger.y > self.knuckle.y) and thumb.x < self.index_finger.x:
-            if self.left_clicking:
-                count += 1
-            elif count > 10:
-                self.hold = True
-                self.left_clicking = False
-            else:
-                self.left_clicking = True
-                count = 0
-                self.hold = False
+            self.left_clicking = True
         else:
             self.left_clicking = False
             self.hold = False
 
         # Check for fist gesture
-        # if (self.index_finger.y > self.knuckle.y) and (middle_finger.y > self.knuckle.y) and (pinky_finger.y > self.knuckle.y) and (ring_finger.y > self.knuckle.y) and (thumb.x < self.index_finger.x) and ():
-        #     self.right_clicking = True
-        #     self.follow_cursor = True
-        # else:
-        #     self.right_clicking = False
+        if (self.dist(self.index_finger, middle_finger)) < 0.08 * hand_length and (self.dist(middle_finger, ring_finger)) < 0.08 * hand_length and (self.dist(pinky_finger, ring_finger)) < 0.08 * hand_length and (self.dist(middle_finger, wrist)) < 0.08 * hand_length:
+            print("right click")
+            self.right_clicking = True
+        else:
+            self.right_clicking = False
 
         # Detect scroll gesture
         if abs(self.index_finger.y - self.knuckle.y) < scroll_threshold and abs(middle_finger.y - self.knuckle.y) < scroll_threshold and abs(pinky_finger.y - self.knuckle.y) < scroll_threshold and abs(ring_finger.y - self.knuckle.y) < scroll_threshold and (self.index_finger.y - self.knuckle.y)*(middle_finger.y - self.knuckle.y)*(pinky_finger.y - self.knuckle.y)*(ring_finger.y - self.knuckle.y) > 0 and (pinky_finger.x -self.index_finger.x) < 10 and self.minimize == False:
@@ -72,7 +65,7 @@ class HandGestureController:
             self.scrolling = False
             
         #Detect volume-up gesture
-        if (middle_finger.y < self.knuckle.y) and (self.index_finger.y < self.knuckle.y) and (ring_finger.y < self.knuckle.y) and (pinky_finger.y > self.knuckle.y):
+        if (self.dist(self.index_finger, thumb)) > 0.08 * hand_length and (middle_finger.y < self.knuckle.y) and (self.index_finger.y < self.knuckle.y) and (ring_finger.y < self.knuckle.y) and (pinky_finger.y > self.knuckle.y):
             self.volume_up = True
         else:
             self.volume_up = False
@@ -88,10 +81,16 @@ class HandGestureController:
             self.minimize = True
         else:
             self.minimize = False
+
+        # Detect on-screen keyboard gesture
+        if (self.dist(self.index_finger, thumb)) < 0.08 * hand_length and (middle_finger.y < self.knuckle.y) and (self.index_finger.y > self.knuckle.y) and (ring_finger.y < self.knuckle.y) and (pinky_finger.y < self.knuckle.y):
+            self.on_screen_keyboard = True
+            print("onscreen keyboard")
+        else:
+            self.on_screen_keyboard = False
         
         # Detect tab shifting gesture using both palms
         if abs(self.knuckle.x - wrist.x) > hand_length * 0.02 and abs(self.knuckle.y - wrist.y) < hand_length * 0.5:
-            print("switch")
             self.tab_shifting = True
         else:
             self.tab_shifting = False
@@ -107,23 +106,23 @@ class HandGestureController:
         monitor = get_monitors()[0]
         screen_width, screen_height = monitor.width, monitor.height
 
-        if self.hold:
-            pyautogui.mouseDown()
-            x, y = int(self.index_finger.x *screen_width*1.3 - 100), int(self.index_finger.y *screen_height*1.4 - 150)
-            pyautogui.moveTo(x, y, 0.05)
-        else:
-            pyautogui.mouseUp()
+        # if self.hold:
+        #     pyautogui.mouseDown()
+        #     x, y = int(self.index_finger.x *screen_width*1.3 - 100), int(self.index_finger.y *screen_height*1.4 - 150)
+        #     pyautogui.moveTo(x, y, 0.05)
+        # else:
+        #     pyautogui.mouseUp()
 
         # Perform the click action
         if self.left_clicking:
             pyautogui.click()
 
         # Perform the right-click action
-        # if self.right_clicking:
-        #     pyautogui.rightClick()
+        elif self.right_clicking:
+            pyautogui.rightClick()
 
         # Perform the scroll action
-        if self.scrolling:
+        elif self.scrolling:
             scroll = -3200*(self.index_finger.y - self.knuckle.y)
             pyautogui.scroll(int(scroll))  # Scroll up/down based on the distance of index finger from the knuckle
             
@@ -136,9 +135,15 @@ class HandGestureController:
             pyautogui.press("volumedown")  
 
         elif self.minimize:
+            pyautogui.hotkey('win', 'm')
+        elif self.on_screen_keyboard:
             pyautogui.keyDown('win')
-            pyautogui.press('m')
+            pyautogui.keyDown('ctrl')
+            pyautogui.keyDown('o')
             pyautogui.keyUp('win')
+            pyautogui.keyUp('ctrl')
+            pyautogui.keyUp('o')
+
         
         # # Perform the brightness-up action
         # elif self.brightness_up:
@@ -153,10 +158,10 @@ class HandGestureController:
              
             
         # Perform tab shifting action
-        # elif self.tab_shifting:
-        #     pyautogui.keyDown('alt')
-        #     pyautogui.press('tab')
-        #     pyautogui.keyUp('alt')
+        elif self.tab_shifting:
+            pyautogui.keyDown('alt')
+            pyautogui.press('tab')
+            pyautogui.keyUp('alt')
 
         # Follow Cursor:
         if self.follow_cursor:
