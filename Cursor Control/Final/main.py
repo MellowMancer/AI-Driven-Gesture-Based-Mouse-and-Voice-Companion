@@ -22,6 +22,7 @@ class ManualWindow(QMainWindow):
         self.setGeometry(200, 200, 800, 460)
         self.label = QLabel(self)
         self.label.setPixmap(QPixmap(os.path.join(os.path.dirname(__file__), 'manual.png')))
+        self.label.setScaledContents(True)
         self.label.setGeometry(0, 0, 800, 460)
 
     def open_image(self, path):
@@ -99,14 +100,18 @@ class MainWindow(QMainWindow):
             # self.voice_process.terminate()
             # self.voice_process.join()
 
-    def open_manual(self):
-        manual_window = QWidget()
-        label = QLabel(manual_window)
-        pixmap = QPixmap("Cursor Control\Final\manual.png")
-        label.setPixmap(pixmap)
-        label.setScaledContents(True)
-        manual_window.setWindowTitle("Manual Window")
-        manual_window.show()
+    def open_manual(self, checked):
+        self.new = ManualWindow()
+        self.new.show()
+        # manual_window = QWidget()
+        # label = QLabel(manual_window)
+        # pixmap = QPixmap("./manual.png")
+        # label.setPixmap(pixmap)
+        # label.setScaledContents(True)
+        # manual_window.setWindowTitle("Manual Window")
+        # print("Hola")
+        # manual_window.show()
+
 
     def __init__(self):
         super().__init__()
@@ -161,4 +166,4 @@ if __name__ == '__main__':
     app = QApplication([])
     window = MainWindow()
     window.show()
-    sys.exit(app.exec())
+    app.exec()
