@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Waver")
+        self.setWindowTitle("M.A.R.S")
         self.setGeometry(200, 200, 800, 460)
 
         self.hand_terminate_queue = multiprocessing.Queue()

@@ -227,23 +227,23 @@ class Voice:
             self.speaker.runAndWait()
             
         #search from wikipedia
-        elif 'who' or 'what' or 'how' in l1:
-            if 'who' in l1:
-                id=l1.index('who')
-            elif 'what' in l1:
-                id=l1.index('what')
-            query=' '.join(l1[id+2:])
-            # print(query)
-            summary = self.fetch_summary(query).split('.')
-            # print(summary)
-            # summ=[]
-            for line in summary[:2]:
-                print(line)
-                if '\n' in line:
-                    line.replace('\n', '')
-                    # summ.append(line)
-                    self.speaker.say(line)
-                    self.speaker.runAndWait()    
+        # elif 'who' or 'what' or 'how' in l1:
+        #     if 'who' in l1:
+        #         id=l1.index('who')
+        #     elif 'what' in l1:
+        #         id=l1.index('what')
+        #     query=' '.join(l1[id+2:])
+        #     # print(query)
+        #     summary = self.fetch_summary(query).split('.')
+        #     # print(summary)
+        #     # summ=[]
+        #     for line in summary[:2]:
+        #         print(line)
+        #         if '\n' in line:
+        #             line.replace('\n', '')
+        #             # summ.append(line)
+        #             self.speaker.say(line)
+        #             self.speaker.runAndWait()    
 
         #play song on youtube
         elif 'play' in text:
